@@ -24,6 +24,6 @@ git submodule update
 3. Start simulink
 
   ```bash
-  ./startsg <custom_startsh.local>
+  ./startsg <custom_startsg.local>
   ```
 
