@@ -5,6 +5,7 @@ A Simulink FFT reorderer based on requirements provided by FotonX
 
 - Vivado / Model Composer 2021.1
 - MATLAB / Simulink R2021a
+- Ubuntu 20.04.6 (Tested OS)
 
 ## Clone this repository
 
