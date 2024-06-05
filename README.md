@@ -29,6 +29,19 @@ git submodule update
 
 ## Module Description
 
+The supplied module takes input spectra -- supplied as a bus of `2^parallel_chan_bits` parallel FFT channels, cycling over a full FFT spectra in `2^serial_chan_bits` clock cycles -- and outputs a bus of subselected channels -- output as a bus of `2^parallel_samp_bits`, cycling over `2^serial_chan_bits` clock cycles.
+
+The module can arbitrarily map input channels to output positions and may repeat inputs in multiple output channel indices.
+
+Two cores are provided for the cases `2^parallel_chan_bits=4` and `2^parallel_chan_bits=8`.
+In both cases, `2^serial_chan_bits=512` and `2^parallel_samp_bits=2`.
+
+In the first case, 2048 channels are subselected to 1024, configured for an FPGA "Simulink" clock 1/4 the upstream ADC sampling rate. 
+This module is named `chan_select4x`.
+
+In the second case, 4096 channels are subselected to 1024, configured for an FPGA "Simulink" clock 1/8 the upstream ADC sampling rate.
+This module is named `chan_select8x`.
+
 ### Parameters
 
 _NB: The parameters exposed in Simulink are provided to aid in porting the module to new configurations. However, without modifications to the CASPER `mlib_devel` library and creation of a full draw script, changing parameters alone is not adequate to completely regenerate a new configuration._
