@@ -27,3 +27,30 @@ git submodule update
   ./startsg <custom_startsg.local>
   ```
 
+## Module Description
+
+### Parameters
+
+_NB: The parameters exposed in Simulink are provided to aid in porting the module to new configurations. However, without modifications to the CASPER `mlib_devel` library and creation of a full draw script, changing parameters alone is not adequate to completely regenerate a new configuration._
+
+| Parameter            | Description |
+| :------------------: | :---------- |
+| `serial_chan_bits`   | `log2` of the number of clock cycles required to input a full FFT spectrum |
+| `parallel_chan_bits` | `log2` of the number of parallel FFT channels presented on the `din` port each clock cycle |
+| `parallel_samp_bits` | `log2` of the number of parallel channels output on the `dout` port each clock cycle |
+| `bitwidth`           | Number of bits per real/imag component of each FFT channel data |
+
+### Ports
+
+| Port Name      | Direction | Data Type | Description |
+| :------------- | :-------: | :-------: | :---------- |
+| `sync`         | input     | Bool      | Synchronization pulse. Should be high for one cycle before the first channel of a spectra. Duty cycle should respect the periodicity requirements outlined in the [CASPER Sync Pulse Usage Memo](https://github.com/casper-astro/publications/blob/master/Memos/files/sync_memo_v1.pdf). |
+| `din`          | input     | UFix<`2 x bitwidth x 2^parallel_chan_bits`>\_0 | FFT data. `2^parallel_chan_bits` channels should be presented in parallel, with the lowest-index channel in the most significant bits.|
+| `chan_out_id`  | input     | UFix<`serial_chan_bits x parallel_samp_bits`>\_0 | The output index to be assigned to FFT channel with index `chan_in_id`|
+| `chan_in_id`   | input     | UFix<`serial_chan_bits x parallel_chan_bits`>\_0 | The FFT channel index to be assigned to output index `chan_out_id` |
+| `map_we`       | input     | Bool | Active-high write enable triggering a write of the channel map presented on `chan_out_id` and `chan_in_id`. |
+| `sync_out`     | output    | Bool | Synchronization pulse output. High for one cycle before the first channel of an output spectra corresponding to the input spectra preceded by a sync. |
+| `dout`         | output    | UFix<`2 x bitwdith x 2^parallel_samp_bits`>\_0 | Sub-selected output data. `2^parallel_samp_bits` are presented on every clock cycle, with the lowest-index sample in the most significant bits|
+| `chan_map_out` | output    | UFix<`serial_chan_bits x parallel_chan_bits`>\_0 | Selection map readout. The FFT channel being output with output index `chan_out_id`. Data on this port reflects the value of `chan_out_id` on the previous clock cycle. I.e., the lookup table has latency 1.|
+
+
