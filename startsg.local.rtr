@@ -9,4 +9,4 @@ export XILINXD_LICENSE_FILE=/home/jackh/.Xilinx/Xilinx.lic
 # over-ride the MATLAB libexpat version with the OS's one.
 # Using LD_PRELOAD=${LD_PRELOAD}:"..." rather than just LD_PRELOAD="..."
 # ensures that we preserve any other settings already configured
-#export LD_PRELOAD=${LD_PRELOAD}:"/usr/lib/x86_64-linux-gnu/libexpat.so"
+export LD_PRELOAD=${LD_PRELOAD}:"/usr/lib/x86_64-linux-gnu/libexpat.so"
