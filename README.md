@@ -42,6 +42,32 @@ This module is named `chan_select4x`.
 In the second case, 4096 channels are subselected to 1024, configured for an FPGA "Simulink" clock 1/8 the upstream ADC sampling rate.
 This module is named `chan_select8x`.
 
+### Theory of Operation
+
+There are many ways to make a module which arbitrarily reorders and subselects `N` parallel inputs to `M` parallel outputs.
+If the reorder can be constrained, for example, by requiring that for `M` parallel inputs only `N` of them shall ever be part of the selection map, various optimisations can be made.
+In the general case, optimisations are more difficult to find.
+The core provided here uses the most general reordering and subselection requirements, and is designed so as to be easy to understand, and easy to modify.
+
+The steps of the reordering and selection process are as follows:
+
+1. Transpose `M` input spectra such that on each FPGA clock cycle, the FPGA deals with a single FFT bin index, but `M` successive time samples.
+2. Perform a runtime-defined remapping of input to output channel number, such that any input FFT channel ID may be remapped to a different position (including mapping a single input to multiple outputs.
+3. Undo the data transpose so that the output ordering is once again single time samples, but now `N` parallel channels.
+4. Discard `M/N` of the output channels so that only the desired subset of the input channels remain.
+
+(In actual fact, steps 3 and 4 and partially swapped, such that most of the final data transpose is performed only on the channels which are not being discarded).
+
+The entire reordering and subselection pipeline is based on CASPER's `square_transpose` block -- which transposes square blocks of `n` by `n` parallel by serial samples -- and CASPER's `reorder` block, which reorders serial data samples.
+Using only these two blocks means that the pipeline is relatively easy to understand and verify, for anyone familiar with the CASPER DSP blockset.
+
+#### Note 1: In-place reordering
+
+The CASPER `reorder` block has the ability to reorder in-place rather than double buffering.
+This halves the amount of RAM needed for data storage, but also means that it takes many reorder cycles for the block to return to its initial state.
+This is rarely a problem in designs, but it should be noted that this places requirements on the allowed periodicity of the block's `sync` input.
+See the [CASPER Sync Pulse Usage Memo](https://github.com/casper-astro/publications/blob/master/Memos/files/sync_memo_v1.pdf) for more information.
+
 ### Parameters
 
 _NB: The parameters exposed in Simulink are provided to aid in porting the module to new configurations. However, without modifications to the CASPER `mlib_devel` library and creation of a full draw script, changing parameters alone is not adequate to completely regenerate a new configuration._
