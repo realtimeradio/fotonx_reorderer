@@ -130,4 +130,85 @@ These test benches generate artificial test data, load a random channel selectio
 
 Pay particular note to the sync periodicity in the test models, which guarantees glitchless operation.
 
+## Control interface
 
+Assuming that the `chan_out_id`, `chan_in_id`, `map_we` and `chan_map_out` ports are connected to software-controlled registers (driven by `casperfpga` or `Pynq` or similar), the following is an example Python method to load and read a channel selection map.
+
+```python
+
+# Example functions to set inputs and read outputs.
+# These should be implemented by the user based on the environment being used.
+
+def write_chan_out_id(n):
+   """
+   Set the chan_out_id input to value n
+   """
+   raise NotImplementedError
+
+def write_chan_in_id(n):
+   """
+   Set the chan_in_id input to value n
+   """
+   raise NotImplementedError
+
+def write_map_we(n):
+   """
+   Set the map_we input to value n
+   """
+   raise NotImplementedError
+
+def read_chan_map_out():
+   """
+   Return the current integer value on the chan_map_out output.
+   """
+   raise NotImplementedError
+
+# Higher-level control functions
+
+def set_map_entry(input_id, output_id):
+   """
+   Configure the core to output FFT input channel index `input_id`
+   in output position index `output_id`
+   """
+   write_map_we(0) # Disable map write-enable
+   # Configure new entry
+   write_chan_in_id(input_id)
+   write_chan_out_id(output_id)
+   # Strobe write-enable
+   write_map_we(1)
+   write_map_we(0)
+
+def get_map_entry(output_id):
+   """
+   Get the FFT input channel index of the channel being output
+   in position index `output_id`
+   """
+   write_map_we(0) # Disable map write-enable
+   # Address map look-up-table to return desired entry
+   write_chan_out_id(output_id)
+   # Read look-up-table contents
+   return read_chan_map_out()
+
+def set_output_map(input_ids):
+   """
+   Given a list, `input_ids` whose i-th entry
+   contains the FFT channel which should be output
+   in position `i`, write a complete map to the
+   selection core.
+   """
+   for output_id, input_id in enumerate(input_ids):
+       set_map_entry(input_id, output_id)
+
+def get_output_map(n=1024):
+   """
+   Get the input FFT channel indices of the channels
+   being output in positions `0` to `n-1`.
+   These are returned as a list where the i-th entry
+   contains the channel which is being output in position `i`.
+   """
+   current_map = []
+   for i in range(n):
+       current_map += [get_map_entry(i)]
+   return current_map
+```
+   
