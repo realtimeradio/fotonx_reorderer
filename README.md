@@ -57,7 +57,7 @@ _NB: The parameters exposed in Simulink are provided to aid in porting the modul
 
 | Port Name      | Direction | Data Type | Description |
 | :------------- | :-------: | :-------: | :---------- |
-| `sync`         | input     | Bool      | Synchronization pulse. Should be high for one cycle before the first channel of a spectra. Duty cycle should respect the periodicity requirements outlined in the [CASPER Sync Pulse Usage Memo](https://github.com/casper-astro/publications/blob/master/Memos/files/sync_memo_v1.pdf). |
+| `sync`         | input     | Bool      | Synchronization pulse. Should be high for one cycle before the first channel of a spectra. Duty cycle should respect the periodicity requirements outlined in the [CASPER Sync Pulse Usage Memo](https://github.com/casper-astro/publications/blob/master/Memos/files/sync_memo_v1.pdf). See example models for settings.|
 | `din`          | input     | UFix<`2 x bitwidth x 2^parallel_chan_bits`>\_0 | FFT data. `2^parallel_chan_bits` channels should be presented in parallel, with the lowest-index channel in the most significant bits.|
 | `chan_out_id`  | input     | UFix<`serial_chan_bits x parallel_samp_bits`>\_0 | The output index to be assigned to FFT channel with index `chan_in_id`|
 | `chan_in_id`   | input     | UFix<`serial_chan_bits x parallel_chan_bits`>\_0 | The FFT channel index to be assigned to output index `chan_out_id` |
@@ -65,5 +65,43 @@ _NB: The parameters exposed in Simulink are provided to aid in porting the modul
 | `sync_out`     | output    | Bool | Synchronization pulse output. High for one cycle before the first channel of an output spectra corresponding to the input spectra preceded by a sync. |
 | `dout`         | output    | UFix<`2 x bitwdith x 2^parallel_samp_bits`>\_0 | Sub-selected output data. `2^parallel_samp_bits` are presented on every clock cycle, with the lowest-index sample in the most significant bits|
 | `chan_map_out` | output    | UFix<`serial_chan_bits x parallel_chan_bits`>\_0 | Selection map readout. The FFT channel being output with output index `chan_out_id`. Data on this port reflects the value of `chan_out_id` on the previous clock cycle. I.e., the lookup table has latency 1.|
+
+## Examples and Testbenches
+
+4-parallel input and 8-parallel input flavours of the reorder module are provided in `reorderer4x.slx` and `reorderer8x.slx`, respectively.
+
+These models also serve as test benches, which can be executed with:
+
+```matlab
+>> run_tb
+Testing 4-parallel input reorder/selection module
+Model reorderer4x is already open.
+Detected 2048 input channels
+Detected 4 parallel inputs
+Sync period is 45056
+Number of data blocks is 88
+Map readback OK
+sync found at: 6170
+Channel Selection Data Check OK
+********************
+* Testbench PASSED *
+********************
+Testing 8-parallel input reorder/selection module
+Model reorderer8x is already open.
+Detected 4096 input channels
+Detected 8 parallel inputs
+Sync period is 49152
+Number of data blocks is 96
+Map readback OK
+sync found at: 16324
+Channel Selection Data Check OK
+********************
+* Testbench PASSED *
+********************
+```
+
+These test benches generate artificial test data, load a random channel selection map into the block, and verify that the output data are as expected.
+
+Pay particular note to the sync periodicity in the test models, which guarantees glitchless operation.
 
 
